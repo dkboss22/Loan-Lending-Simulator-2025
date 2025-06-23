@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MicroLoan World</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f8ff;
+      margin: 0;
+      padding: 1rem;
+    }
+    header {
+      background-color: #2c3e50;
+      color: white;
+      text-align: center;
+      padding: 1rem;
+    }
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: white;
+      padding: 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    select, button {
+      width: 100%;
+      padding: 0.75rem;
+      margin: 1rem 0;
+      font-size: 1rem;
+    }
+    .loan-box {
+      margin-top: 1rem;
+      padding: 1rem;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background: #fafafa;
+    }
+    .result {
+      font-weight: bold;
+      margin-top: 1rem;
+    }
+    .score {
+      margin-top: 1rem;
+      background: #e8f5e9;
+      padding: 1rem;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🌍 MicroLoan World</h1>
+    <p>Empower lives through virtual lending.</p>
+  </header>
+
+  <div class="container">
+    <label for="region">🌎 Choose a Region:</label>
+    <select id="region">
+      <option value="">-- Select Region --</option>
+      <option value="africa">Africa</option>
+      <option value="asia">Asia</option>
+      <option value="latin">Latin America</option>
+    </select>
+
+    <button id="next-borrower" disabled>🔁 Next Customer</button>
+    <div id="loan-info" class="loan-box" style="display:none;"></div>
+    <div id="result" class="result"></div>
+    <div class="score" id="scoreBoard" style="display:none;"></div>
+  </div>
+
+  <script>
+const borrowers = {
+  africa: [
+    { type: "Farmer", amount: 200, description: "Wants $200 to buy irrigation tools.", odds: 0.85 },
+    { type: "Artisan", amount: 150, description: "Needs $150 to buy sewing machine.", odds: 0.75 },
+    { type: "Vendor", amount: 100, description: "Seeks $100 for food cart supplies.", odds: 0.65 },
+    { type: "Soap Maker", amount: 80, description: "Needs $80 for ingredients and molds.", odds: 0.70 },
+    { type: "School Owner", amount: 250, description: "Wants $250 for desks and books.", odds: 0.78 }
+  ],
+  asia: [
+    { type: "Farmer", amount: 180, description: "Needs $180 to expand rice farm.", odds: 0.80 },
+    { type: "Artisan", amount: 120, description: "Wants $120 for pottery kiln.", odds: 0.70 },
+    { type: "Vendor", amount: 90, description: "Needs $90 to set up tea stand.", odds: 0.60 },
+    { type: "Tailor", amount: 110, description: "Seeks $110 to buy fabrics and thread.", odds: 0.75 },
+    { type: "Delivery Driver", amount: 140, description: "Needs $140 for motorbike repairs.", odds: 0.68 }
+  ],
+  latin: [
+    { type: "Farmer", amount: 220, description: "Wants $220 to plant coffee trees.", odds: 0.82 },
+    { type: "Artisan", amount: 130, description: "Needs $130 for textile loom.", odds: 0.72 },
+    { type: "Vendor", amount: 110, description: "Seeks $110 to start empanada stand.", odds: 0.68 },
+    { type: "Retailer", amount: 160, description: "Wants $160 to restock convenience store.", odds: 0.76 },
+    { type: "Soap Maker", amount: 100, description: "Needs $100 for natural ingredients.", odds: 0.71 }
+  ]
+};
+
+let repaid = 0;
+let defaulted = 0;
+let invested = 0;
+let returned = 0;
+
+let currentBorrower = null;
+
+function displayBorrower(region) {
+  const pool = borrowers[region];
+  currentBorrower = pool[Math.floor(Math.random() * pool.length)];
+  const { type, amount, description, odds } = currentBorrower;
+
+  document.getElementById("loan-info").innerHTML = `
+    <h3>📋 Loan Profile</h3>
+    <p><strong>Region:</strong> ${region.toUpperCase()}</p>
+    <p><strong>Borrower Type:</strong> ${type}</p>
+    <p><strong>Loan Amount:</strong> $${amount}</p>
+    <p><strong>Loan Request:</strong> ${description}</p>
+    <p><strong>Repayment Chance:</strong> ${Math.round(odds * 100)}%</p>
+    <button id="lend">Lend Now 💸</button>
+  `;
+  document.getElementById("loan-info").style.display = "block";
+  document.getElementById("result").textContent = "";
+  document.getElementById("scoreBoard").style.display = "none";
+
+  document.getElementById("lend").addEventListener("click", () => {
+    invested += amount;
+    const roll = Math.random();
+    if (roll <= odds) {
+      const repayment = amount * 1.1;
+      document.getElementById("result").textContent = `✅ Success! Repaid $${repayment.toFixed(2)}.`;
+      document.getElementById("result").style.color = "green";
+      returned += repayment;
+      repaid++;
+    } else {
+      document.getElementById("result").textContent = `❌ Defaulted. You lost $${amount}.`;
+      document.getElementById("result").style.color = "red";
+      defaulted++;
+    }
+
+    const profit = returned - invested;
+    const profitColor = profit >= 0 ? "green" : "red";
+
+    document.getElementById("scoreBoard").style.display = "block";
+    document.getElementById("scoreBoard").innerHTML = `
+      <h4>📊 Lending Summary</h4>
+      <p>Loans Repaid: ${repaid}</p>
+      <p>Defaults: ${defaulted}</p>
+      <p>Total Invested: $${invested.toFixed(2)}</p>
+      <p>Total Returned: $${returned.toFixed(2)}</p>
+      <p style="color:${profitColor};"><strong>Net ${profit >= 0 ? "Profit" : "Loss"}: $${profit.toFixed(2)}</strong></p>
+    `;
+  });
+}
+
+document.getElementById("region").addEventListener("change", () => {
+  const region = document.getElementById("region").value;
+  document.getElementById("next-borrower").disabled = !region;
+  if (region) {
+    displayBorrower(region);
+  } else {
+    document.getElementById("loan-info").style.display = "none";
+  }
+});
+
+document.getElementById("next-borrower").addEventListener("click", () => {
+  const region = document.getElementById("region").value;
+  if (region) {
+    displayBorrower(region);
+  }
+});
+  </script>
+</body>
+</html>
